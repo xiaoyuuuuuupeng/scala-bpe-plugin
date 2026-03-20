@@ -14,9 +14,11 @@ import com.intellij.util.ProcessingContext
 class BpeScalaReferenceContributor : PsiReferenceContributor() {
 
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
+        // 较高优先级，使 BPE 引用尽量与 Scala 插件的引用一并参与解析（具体合并行为由平台决定）
         registrar.registerReferenceProvider(
             PlatformPatterns.psiElement(),
-            BpeScalaReferenceProvider()
+            BpeScalaReferenceProvider(),
+            2000.0
         )
     }
 }

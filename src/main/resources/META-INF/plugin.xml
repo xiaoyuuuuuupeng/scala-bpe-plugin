@@ -77,6 +77,9 @@ ScalaBPE Navigator - An IntelliJ IDEA plugin for ScalaBPE framework development,
             language="Scala"
             implementationClass="com.shengqugames.bpe.marker.BpeReverseLineMarkerProvider"/>
 
+        <!-- .scala 安装 Scala 插件后：类名 Ctrl+Click 额外提供 XML message 目标（与 Scala 声明并列） -->
+        <gotoDeclarationHandler implementation="com.shengqugames.bpe.navigation.BpeReverseGotoHandler"/>
+
         <!-- Hover documentation: show request/response parameters from XML message -->
         <lang.documentationProvider
             language="XML"

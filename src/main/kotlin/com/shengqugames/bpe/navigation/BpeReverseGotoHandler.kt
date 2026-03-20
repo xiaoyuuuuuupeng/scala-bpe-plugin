@@ -3,17 +3,22 @@ package com.shengqugames.bpe.navigation
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiPlainText
+import com.intellij.psi.PsiWhiteSpace
 import com.shengqugames.bpe.util.BpeXmlFinder
 
 /**
- * Handles Ctrl+Click only for structured Scala PSI (when Scala plugin is installed).
- * For plain text files, returns null so PsiReferenceContributor provides precise-range navigation.
+ * 与 [com.shengqugames.bpe.reference.BpeScalaReferenceContributor] 配合：
+ * 安装 Scala 官方插件后，类名上的 Ctrl+Click 会优先走 Scala 的声明解析；
+ * 通过 GotoDeclarationHandler 额外提供 XML &lt;message&gt; 目标，与 Scala 目标一并出现（多目标时弹出选择）。
+ *
+ * 使用 [PsiElement.containingFile.findElementAt] 定位 offset 处真实 token，
+ * 避免 sourceElement 为整段 class 体时因长文本被提前 return。
  */
 class BpeReverseGotoHandler : GotoDeclarationHandler {
 
     companion object {
-        val CLASS_NAME_PATTERN = Regex("""Flow_([a-z0-9]+)_([a-z0-9]+)""")
+        /** 与 BpeScalaReferenceContributor.CLASS_NAME_REGEX 保持一致 */
+        val CLASS_NAME_PATTERN = Regex("""Flow_([a-zA-Z0-9]+)_([a-zA-Z0-9]+)""")
     }
 
     override fun getGotoDeclarationTargets(
@@ -21,22 +26,24 @@ class BpeReverseGotoHandler : GotoDeclarationHandler {
         offset: Int,
         editor: Editor
     ): Array<PsiElement>? {
-        val element = sourceElement ?: return null
-
-        // Plain text → let PsiReferenceContributor handle it (precise underline range)
-        if (element is PsiPlainText) return null
-        if (element.text.contains('\n') || element.text.length > 200) return null
-
-        val file = element.containingFile?.virtualFile ?: return null
-        val ext = file.extension?.lowercase()
+        val containingFile = sourceElement?.containingFile ?: return null
+        val vf = containingFile.virtualFile ?: return null
+        val ext = vf.extension?.lowercase() ?: return null
         if (ext != "scala" && ext != "flow") return null
 
-        // Structured Scala PSI: element is a single identifier token like "Flow_xxx_yyy"
-        val match = CLASS_NAME_PATTERN.matchEntire(element.text) ?: return null
-        val svcLower = match.groupValues[1]
-        val msgLower = match.groupValues[2]
+        var el = containingFile.findElementAt(offset) ?: return null
+        if (el is PsiWhiteSpace) {
+            el = containingFile.findElementAt(offset - 1) ?: return null
+        }
 
-        val targets = BpeXmlFinder.findMessageElements(element.project, svcLower, msgLower)
+        val text = el.text
+        if (text.contains('\n') || text.length > 200) return null
+
+        val match = CLASS_NAME_PATTERN.matchEntire(text) ?: return null
+        val svcLower = match.groupValues[1].lowercase()
+        val msgLower = match.groupValues[2].lowercase()
+
+        val targets = BpeXmlFinder.findMessageElements(el.project, svcLower, msgLower)
         return if (targets.isNotEmpty()) targets.toTypedArray() else null
     }
 }

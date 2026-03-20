@@ -5,6 +5,7 @@ import com.intellij.psi.*
 import com.intellij.psi.xml.XmlAttributeValue
 import com.shengqugames.bpe.util.BpeFlowFinder
 import com.shengqugames.bpe.util.BpeInvokeFinder
+import com.shengqugames.bpe.util.NoInvokeCallSiteElement
 
 /**
  * Ctrl+Click on <message name="..."> → navigate to invoke call sites only.
@@ -19,6 +20,12 @@ class BpeMessageReference(
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
         val callSites = BpeInvokeFinder.findCallSites(element.project, serviceName, messageName)
+        if (callSites.isEmpty()) {
+            // 无 invoke 时仍提供可解析目标，导航时弹出说明，避免 IDE「找不到要转到的声明」
+            return arrayOf(
+                PsiElementResolveResult(NoInvokeCallSiteElement(element, serviceName, messageName))
+            )
+        }
         return callSites.map { PsiElementResolveResult(it) }.toTypedArray()
     }
 
