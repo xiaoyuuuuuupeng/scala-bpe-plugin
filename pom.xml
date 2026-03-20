@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.shengqugames</groupId>
+    <artifactId>scala-bpe-plugin</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>ScalaBPE Navigator</name>
+    <description>IntelliJ IDEA plugin for ScalaBPE framework navigation</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <kotlin.version>2.2.0</kotlin.version>
+        <java.version>21</java.version>
+
+        <!-- IntelliJ IDEA 本地安装路径，请根据实际情况修改 -->
+        <idea.home>E:/IntelliJ IDEA 2025.2.2</idea.home>
+    </properties>
+
+    <dependencies>
+        <!-- ==================== Kotlin ==================== -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+            <version>${kotlin.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- ==================== IntelliJ Platform SDK ==================== -->
+        <!-- 核心平台 API（PSI、VFS、Editor、Actions 等） -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>app</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/app.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>app-client</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/app-client.jar</systemPath>
+        </dependency>
+
+        <!-- 平台库：工具类、集合、IO 等 -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>lib</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/lib.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>lib-client</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/lib-client.jar</systemPath>
+        </dependency>
+
+        <!-- 产品级 API -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>product</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/product.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>product-client</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/product-client.jar</systemPath>
+        </dependency>
+
+        <!-- 平台加载器 -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>platform-loader</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/platform-loader.jar</systemPath>
+        </dependency>
+
+        <!-- 工具类 -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>util</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/util.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>util-8</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/util-8.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>util-rt</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/util_rt.jar</systemPath>
+        </dependency>
+
+        <!-- Trove 集合库（IntelliJ 内部使用） -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>trove</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/trove.jar</systemPath>
+        </dependency>
+
+        <!-- JetBrains Annotations -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/annotations.jar</systemPath>
+        </dependency>
+
+        <!-- JPS 模型 -->
+        <dependency>
+            <groupId>com.jetbrains.intellij</groupId>
+            <artifactId>jps-model</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${idea.home}/lib/jps-model.jar</systemPath>
+        </dependency>
+
+        <!--
+            XML PSI（XmlTag、XmlToken 等）已内置于平台核心 JAR（app.jar）中，
+            IDEA 2025.x 无需额外引用 XML 插件 JAR。
+        -->
+    </dependencies>
+
+    <build>
+        <!-- Kotlin 源码目录 -->
+        <sourceDirectory>src/main/kotlin</sourceDirectory>
+
+        <!-- 资源目录（plugin.xml、icons 等） -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <!-- Kotlin 编译插件 -->
+            <plugin>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <version>${kotlin.version}</version>
+                <configuration>
+                    <jvmTarget>${java.version}</jvmTarget>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- JAR 打包：排除 system 依赖，仅打包插件自身代码 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.4.2</version>
+                <configuration>
+                    <archive>
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- 编译器版本 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- 阿里云镜像仓库（加速依赖下载） -->
+    <repositories>
+        <repository>
+            <id>aliyun-public</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>aliyun-public</id>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project>

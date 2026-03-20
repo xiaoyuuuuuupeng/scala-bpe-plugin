@@ -1,0 +1,90 @@
+<idea-plugin>
+    <id>com.shengqugames.scala-bpe-plugin</id>
+    <name>ScalaBPE Navigator</name>
+    <vendor email="pengxiaoyu@shengqugames.com">pengxiaoyu</vendor>
+
+    <description><![CDATA[
+        <h2>ScalaBPE Navigator</h2>
+        <p>为 ScalaBPE 框架开发者打造的 IntelliJ IDEA 插件，提供 XML 服务契约与 Scala/Flow 实现代码之间的高效导航与开发辅助。</p>
+
+        <h3>主要功能</h3>
+        <ul>
+            <li><b>.flow 语法高亮</b> — 安装 Scala 插件后，.flow 文件自动获得完整的 Scala 语法高亮</li>
+            <li><b>XML → 实现文件导航</b> — 点击 XML &lt;message&gt; 标签旁的 Gutter 图标，跳转到对应的 .scala/.flow 实现文件</li>
+            <li><b>XML → 调用点导航</b> — Ctrl+Click XML 中的 message name，跳转到代码中的 invoke 调用位置</li>
+            <li><b>实现文件 → XML 反向导航</b> — 从 Scala/Flow 文件中的类名或注释 Ctrl+Click 跳转回 XML 契约定义</li>
+            <li><b>Invoke → XML 导航</b> — Ctrl+Click invoke("svcName.msgName") 字符串，跳转到 XML 契约</li>
+            <li><b>悬浮文档</b> — Ctrl+Hover 或 Ctrl+Q 查看 XML message 的请求/响应参数信息</li>
+            <li><b>智能补全</b> — 在 invoke() 调用中自动补全 serviceName.messageName，并生成可编辑的参数模板</li>
+        </ul>
+
+        <h3>使用前提</h3>
+        <ul>
+            <li>项目需包含标准的 ScalaBPE 目录结构：avenue_conf/（XML 契约）和 compose_conf/（实现文件）</li>
+            <li>推荐安装 Scala 官方插件以获得 .flow 文件语法高亮</li>
+        </ul>
+    ]]></description>
+
+    <change-notes><![CDATA[
+        <h3>1.0.0</h3>
+        <ul>
+            <li>初始发布</li>
+            <li>.flow 文件 Scala 语法高亮（需安装 Scala 插件）</li>
+            <li>XML ↔ Scala/Flow 双向导航（Gutter 图标 + Ctrl+Click）</li>
+            <li>Invoke 调用点导航与多目标选择</li>
+            <li>XML message 悬浮文档（请求/响应参数）</li>
+            <li>Invoke 智能补全 + 模糊匹配 + Tab 参数模板</li>
+        </ul>
+    ]]></change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- .flow files → Scala syntax highlighting (when Scala plugin is installed) -->
+        <fileTypeOverrider
+            implementation="com.shengqugames.bpe.highlight.BpeFlowFileTypeOverrider"/>
+
+        <!-- XML → .flow/.scala: Ctrl+Click on message name attribute -->
+        <psi.referenceContributor
+            language="XML"
+            implementation="com.shengqugames.bpe.reference.BpeXmlReferenceContributor"/>
+
+        <!-- XML → .flow/.scala: gutter icon on <message> tags -->
+        <codeInsight.lineMarkerProvider
+            language="XML"
+            implementationClass="com.shengqugames.bpe.marker.BpeLineMarkerProvider"/>
+
+        <!-- .scala/.flow → XML: precise Ctrl+Click on class name / //$comment (plain text) -->
+        <psi.referenceContributor
+            language="TEXT"
+            implementation="com.shengqugames.bpe.reference.BpeScalaReferenceContributor"/>
+
+        <!-- .scala/.flow → XML: precise Ctrl+Click on class name (when Scala plugin is installed) -->
+        <psi.referenceContributor
+            language="Scala"
+            implementation="com.shengqugames.bpe.reference.BpeScalaReferenceContributor"/>
+
+        <!-- .scala/.flow → XML: gutter icon (plain text files, .flow without Scala plugin) -->
+        <codeInsight.lineMarkerProvider
+            language="TEXT"
+            implementationClass="com.shengqugames.bpe.marker.BpeReverseLineMarkerProvider"/>
+
+        <!-- .scala/.flow → XML: gutter icon (when Scala plugin is installed) -->
+        <codeInsight.lineMarkerProvider
+            language="Scala"
+            implementationClass="com.shengqugames.bpe.marker.BpeReverseLineMarkerProvider"/>
+
+        <!-- Hover documentation: show request/response parameters from XML message -->
+        <lang.documentationProvider
+            language="XML"
+            implementationClass="com.shengqugames.bpe.doc.BpeDocumentationProvider"/>
+
+        <!-- Auto-completion for invoke("svcName.msgName") in .scala/.flow files -->
+        <completion.contributor
+            language="TEXT"
+            implementationClass="com.shengqugames.bpe.completion.BpeInvokeCompletionContributor"/>
+        <completion.contributor
+            language="Scala"
+            implementationClass="com.shengqugames.bpe.completion.BpeInvokeCompletionContributor"/>
+    </extensions>
+</idea-plugin>

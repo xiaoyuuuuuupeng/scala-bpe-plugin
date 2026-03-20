@@ -1,0 +1,10 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rounded rect -->
+  <rect x="0.5" y="0.5" width="15" height="15" rx="3" fill="#E3F2FD" stroke="#1E88E5" stroke-width="0.6"/>
+  <!-- Left arrow -->
+  <path d="M8.5 5.5 L5 8 L8.5 10.5" stroke="#1E88E5" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- XML angle bracket < -->
+  <path d="M11 5 L9.2 8 L11 11" stroke="#1565C0" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- XML angle bracket > -->
+  <path d="M12.5 5 L14.3 8 L12.5 11" stroke="#1565C0" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
