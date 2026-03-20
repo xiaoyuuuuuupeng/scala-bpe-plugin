@@ -1,10 +1,10 @@
 plugins {
     id("org.jetbrains.intellij.platform") version "2.13.1"
-    kotlin("jvm") version "2.2.0"
+    kotlin("jvm") version "2.1.20"
 }
 
 group = "com.shengqugames"
-version = "1.0.0"
+version = "1.0.1"
 
 repositories {
     // 阿里云公共仓库（镜像 Maven Central + JCenter）
@@ -26,7 +26,7 @@ intellijPlatform {
     pluginConfiguration {
         id = "com.shengqugames.scala-bpe-plugin"
         name = "ScalaBPE Navigator"
-        version = "1.0.0"
+        version = "1.0.1"
         ideaVersion {
             sinceBuild = "252"
         }

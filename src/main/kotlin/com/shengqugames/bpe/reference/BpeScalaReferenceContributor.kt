@@ -24,7 +24,8 @@ class BpeScalaReferenceContributor : PsiReferenceContributor() {
 private class BpeScalaReferenceProvider : PsiReferenceProvider() {
 
     companion object {
-        val CLASS_NAME_REGEX = Regex("""Flow_([a-z0-9]+)_([a-z0-9]+)""")
+        /** 类名各段允许大小写（与 XML 比较时统一转小写） */
+        val CLASS_NAME_REGEX = Regex("""Flow_([a-zA-Z0-9]+)_([a-zA-Z0-9]+)""")
         val FLOW_COMMENT_REGEX = Regex("""//\${'$'}(\w+)\.(\w+)""")
         // "serviceName.messageName" — exactly one dot, word chars only
         val INVOKE_STRING_REGEX = Regex(""""(\w+)\.(\w+)"""")
@@ -53,12 +54,29 @@ private class BpeScalaReferenceProvider : PsiReferenceProvider() {
         // Case 1: identifier token like "Flow_xxx_yyy"
         CLASS_NAME_REGEX.matchEntire(text)?.let { match ->
             val range = TextRange(0, text.length)
-            return arrayOf(BpeFlowToXmlReference(element, range, match.groupValues[1], match.groupValues[2]))
+            return arrayOf(
+                BpeFlowToXmlReference(
+                    element, range,
+                    match.groupValues[1].lowercase(), match.groupValues[2].lowercase()
+                )
+            )
         }
 
         // Case 2: string literal token like "dbPayRouter.isExistOrderUserRecord" (with quotes)
         INVOKE_STRING_REGEX.matchEntire(text)?.let { match ->
             val range = TextRange(1, text.length - 1) // content inside quotes
+            return arrayOf(BpeFlowToXmlReference(element, range,
+                match.groupValues[1].lowercase(), match.groupValues[2].lowercase()))
+        }
+
+        // Case 3: 单行 //$svc.msg（独立 Psi 元素）。此前仅在「整文件大元素」分支匹配，.flow 被当作 Scala 后注释成小元素，导致无法 Ctrl+Click
+        val trimmedForComment = text.trimStart()
+        val leadingWs = text.length - trimmedForComment.length
+        FLOW_COMMENT_REGEX.matchEntire(trimmedForComment)?.let { match ->
+            val range = TextRange(
+                leadingWs + match.range.first,
+                leadingWs + match.range.last + 1
+            )
             return arrayOf(BpeFlowToXmlReference(element, range,
                 match.groupValues[1].lowercase(), match.groupValues[2].lowercase()))
         }
@@ -71,7 +89,8 @@ private class BpeScalaReferenceProvider : PsiReferenceProvider() {
 
         for (match in CLASS_NAME_REGEX.findAll(text)) {
             val range = TextRange(match.range.first, match.range.last + 1)
-            refs.add(BpeFlowToXmlReference(element, range, match.groupValues[1], match.groupValues[2]))
+            refs.add(BpeFlowToXmlReference(element, range,
+                match.groupValues[1].lowercase(), match.groupValues[2].lowercase()))
         }
 
         for (match in FLOW_COMMENT_REGEX.findAll(text)) {

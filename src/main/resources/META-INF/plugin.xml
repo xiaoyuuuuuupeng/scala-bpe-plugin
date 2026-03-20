@@ -4,28 +4,31 @@
     <vendor email="pengxiaoyu@shengqugames.com">pengxiaoyu</vendor>
 
     <description><![CDATA[
-        <h2>ScalaBPE Navigator</h2>
-        <p>为 ScalaBPE 框架开发者打造的 IntelliJ IDEA 插件，提供 XML 服务契约与 Scala/Flow 实现代码之间的高效导航与开发辅助。</p>
+ScalaBPE Navigator - An IntelliJ IDEA plugin for ScalaBPE framework development, providing efficient navigation and tooling between XML service contracts and Scala/Flow implementation files.
 
-        <h3>主要功能</h3>
-        <ul>
-            <li><b>.flow 语法高亮</b> — 安装 Scala 插件后，.flow 文件自动获得完整的 Scala 语法高亮</li>
-            <li><b>XML → 实现文件导航</b> — 点击 XML &lt;message&gt; 标签旁的 Gutter 图标，跳转到对应的 .scala/.flow 实现文件</li>
-            <li><b>XML → 调用点导航</b> — Ctrl+Click XML 中的 message name，跳转到代码中的 invoke 调用位置</li>
-            <li><b>实现文件 → XML 反向导航</b> — 从 Scala/Flow 文件中的类名或注释 Ctrl+Click 跳转回 XML 契约定义</li>
-            <li><b>Invoke → XML 导航</b> — Ctrl+Click invoke("svcName.msgName") 字符串，跳转到 XML 契约</li>
-            <li><b>悬浮文档</b> — Ctrl+Hover 或 Ctrl+Q 查看 XML message 的请求/响应参数信息</li>
-            <li><b>智能补全</b> — 在 invoke() 调用中自动补全 serviceName.messageName，并生成可编辑的参数模板</li>
-        </ul>
+<h3>Features</h3>
+<ul>
+    <li><b>.flow Syntax Highlighting</b> - Automatic Scala syntax highlighting for .flow files (requires Scala plugin)</li>
+    <li><b>XML to Implementation</b> - Click gutter icon on XML message tags to jump to .scala/.flow files</li>
+    <li><b>XML to Call Sites</b> - Ctrl+Click message name to navigate to invoke() call locations</li>
+    <li><b>Reverse Navigation</b> - Ctrl+Click class names or comments in Scala/Flow files to jump back to XML definitions</li>
+    <li><b>Invoke to XML</b> - Ctrl+Click invoke("svcName.msgName") strings to jump to XML contracts</li>
+    <li><b>Hover Documentation</b> - Ctrl+Hover or Ctrl+Q to view request/response parameter info</li>
+    <li><b>Smart Completion</b> - Auto-complete serviceName.messageName in invoke() calls with editable parameter templates</li>
+</ul>
 
-        <h3>使用前提</h3>
-        <ul>
-            <li>项目需包含标准的 ScalaBPE 目录结构：avenue_conf/（XML 契约）和 compose_conf/（实现文件）</li>
-            <li>推荐安装 Scala 官方插件以获得 .flow 文件语法高亮</li>
-        </ul>
+<h3>Prerequisites</h3>
+<ul>
+    <li>Project must contain standard ScalaBPE directory structure: avenue_conf/ (XML contracts) and compose_conf/ (implementation files)</li>
+    <li>Scala plugin recommended for .flow file syntax highlighting</li>
+</ul>
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>1.0.1</h3>
+        <ul>
+            <li>修复：与 IntelliJ IDEA 2025.2.x 的 Kotlin 运行时版本对齐，解决「不兼容当前 IDE」安装问题</li>
+        </ul>
         <h3>1.0.0</h3>
         <ul>
             <li>初始发布</li>

@@ -131,13 +131,13 @@ Gradle 是 IntelliJ 插件开发的标准构建工具，支持完整的编译、
 打包产物位于：
 
 ```
-build/distributions/scala-bpe-plugin-1.0.0.zip
+build/distributions/scala-bpe-plugin-1.0.1.zip
 ```
 
 验证 ZIP 包内容：
 
 ```bat
-tar -tf build/distributions/scala-bpe-plugin-1.0.0.zip
+tar -tf build/distributions/scala-bpe-plugin-1.0.1.zip
 ```
 
 应包含类似结构：
@@ -145,8 +145,8 @@ tar -tf build/distributions/scala-bpe-plugin-1.0.0.zip
 ```
 scala-bpe-plugin/
   lib/
-    scala-bpe-plugin-1.0.0.jar
-    instrumented-scala-bpe-plugin-1.0.0.jar
+    scala-bpe-plugin-1.0.1.jar
+    instrumented-scala-bpe-plugin-1.0.1.jar
     kotlin-stdlib-x.x.x.jar
     ...
 ```
@@ -267,10 +267,10 @@ mvn clean
 
 ### 从 ZIP 安装（推荐）
 
-1. 获取插件包 `scala-bpe-plugin-1.0.0.zip`（由开发者提供，或自行编译）
+1. 获取插件包 `scala-bpe-plugin-1.0.1.zip`（由开发者提供，或自行编译）
 2. 打开 IntelliJ IDEA -> **Settings** -> **Plugins**
 3. 点击右上角齿轮图标 -> **Install Plugin from Disk...**
-4. 选择 `scala-bpe-plugin-1.0.0.zip` 文件
+4. 选择 `scala-bpe-plugin-1.0.1.zip` 文件
 5. 点击 **OK** -> 重启 IDEA
 
 <!-- 截图：IDEA 插件安装界面 -->
@@ -289,7 +289,7 @@ cd scala-bpe-plugin
 .\gradlew.bat clean buildPlugin
 
 # 4. 安装
-# 将 build/distributions/scala-bpe-plugin-1.0.0.zip 通过 Install from Disk 安装
+# 将 build/distributions/scala-bpe-plugin-1.0.1.zip 通过 Install from Disk 安装
 ```
 
 **运行环境要求**：

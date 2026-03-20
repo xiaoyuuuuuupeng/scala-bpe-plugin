@@ -20,8 +20,8 @@ class BpeReverseLineMarkerProvider : LineMarkerProvider {
 
     companion object {
         val ICON = IconLoader.getIcon("/icons/bpe_xml.svg", BpeReverseLineMarkerProvider::class.java)
-        val CLASS_NAME_PATTERN = Regex("""Flow_([a-z0-9]+)_([a-z0-9]+)""")
-        val FULL_CLASS_PATTERN = Regex("""class\s+Flow_([a-z0-9]+)_([a-z0-9]+)\s+extends""")
+        val CLASS_NAME_PATTERN = Regex("""Flow_([a-zA-Z0-9]+)_([a-zA-Z0-9]+)""")
+        val FULL_CLASS_PATTERN = Regex("""class\s+Flow_([a-zA-Z0-9]+)_([a-zA-Z0-9]+)\s+extends""")
         val FLOW_COMMENT_PATTERN = Regex("""//\${'$'}(\w+)\.(\w+)""")
     }
 
@@ -35,8 +35,8 @@ class BpeReverseLineMarkerProvider : LineMarkerProvider {
         // Structured PSI case: element is a single identifier token like "Flow_xxx_yyy"
         if (!text.contains('\n') && !text.contains(' ')) {
             val match = CLASS_NAME_PATTERN.matchEntire(text) ?: return null
-            val svcLower = match.groupValues[1]
-            val msgLower = match.groupValues[2]
+            val svcLower = match.groupValues[1].lowercase()
+            val msgLower = match.groupValues[2].lowercase()
             if (!BpeXmlFinder.hasMessageElement(element.project, svcLower, msgLower)) return null
             return createMarker(element, element.textRange, svcLower, msgLower)
         }
@@ -62,8 +62,8 @@ class BpeReverseLineMarkerProvider : LineMarkerProvider {
 
             val classMatch = FULL_CLASS_PATTERN.find(scanText)
             if (classMatch != null) {
-                val svcLower = classMatch.groupValues[1]
-                val msgLower = classMatch.groupValues[2]
+                val svcLower = classMatch.groupValues[1].lowercase()
+                val msgLower = classMatch.groupValues[2].lowercase()
                 if (BpeXmlFinder.hasMessageElement(element.project, svcLower, msgLower)) {
                     val range = TextRange(
                         baseOffset + classMatch.range.first,

@@ -65,7 +65,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-    <h3>1.0.0</h3>
+    <h3>1.0.1</h3>
     <ul>
         <li>Initial release</li>
         <li>XML ↔ Scala/Flow bidirectional navigation</li>
@@ -99,7 +99,7 @@ intellijPlatform {
     pluginConfiguration {
         id = "com.shengqugames.scala-bpe-plugin"
         name = "ScalaBPE Navigator"
-        version = "1.0.0"
+        version = "1.0.1"
         ideaVersion {
             sinceBuild = "252"
             // untilBuild = "253.*"  // 可选：限制最高兼容版本
@@ -122,14 +122,14 @@ intellijPlatform {
 打包产物位于：
 
 ```
-build/distributions/scala-bpe-plugin-1.0.0.zip
+build/distributions/scala-bpe-plugin-1.0.1.zip
 ```
 
 验证 ZIP 包内容：
 
 ```bash
 # 查看 ZIP 内文件结构
-tar -tf build/distributions/scala-bpe-plugin-1.0.0.zip
+tar -tf build/distributions/scala-bpe-plugin-1.0.1.zip
 ```
 
 应包含类似结构：
@@ -137,8 +137,8 @@ tar -tf build/distributions/scala-bpe-plugin-1.0.0.zip
 ```
 scala-bpe-plugin/
   lib/
-    scala-bpe-plugin-1.0.0.jar
-    instrumented-scala-bpe-plugin-1.0.0.jar
+    scala-bpe-plugin-1.0.1.jar
+    instrumented-scala-bpe-plugin-1.0.1.jar
     kotlin-stdlib-x.x.x.jar
     ...
 ```
@@ -159,7 +159,7 @@ scala-bpe-plugin/
 
 | 表单项 | 填写内容 |
 |--------|----------|
-| **Plugin ZIP file** | 选择 `build/distributions/scala-bpe-plugin-1.0.0.zip` |
+| **Plugin ZIP file** | 选择 `build/distributions/scala-bpe-plugin-1.0.1.zip` |
 | **License** | 选择合适的开源协议（如 Apache 2.0）或 Proprietary |
 | **Category** | 选择 `Navigation` 或 `Languages` |
 | **Tags** | 填入 `scala`, `bpe`, `navigation`, `xml` |
@@ -258,7 +258,7 @@ intellijPlatform {
     <li>新增 xxx 功能</li>
     <li>修复 xxx 问题</li>
 </ul>
-<h3>1.0.0</h3>
+<h3>1.0.1</h3>
 <ul>
     <li>Initial release</li>
 </ul>
