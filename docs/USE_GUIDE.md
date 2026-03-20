@@ -16,6 +16,7 @@
   - [5. Invoke 调用 → XML 契约导航](#5-invoke-调用--xml-契约导航)
   - [6. Hover 悬浮文档](#6-hover-悬浮文档)
   - [7. Invoke 智能补全](#7-invoke-智能补全)
+  - [8. XML 内 type 定义跳转](#8-xml-内-type-定义跳转)
 - [常见问题](#常见问题)
 
 > 编译、安装与调试请参阅 [INSTALL.md](INSTALL.md)  
@@ -47,6 +48,7 @@
 | Invoke → XML | Ctrl+Click 字符串 | 从 `"svcName.msgName"` 跳转到 XML 契约 |
 | 悬浮文档 | Ctrl+Hover / Ctrl+Q | 显示请求/响应参数信息 |
 | 智能补全 | 输入 `"` 后键入字符 | 自动补全 serviceName.messageName 并生成参数模板 |
+| XML type 引用 | Ctrl+Click `type` 属性值 | 本文件内从 `type="类型名"` 跳到 `<type name="类型名"/>` |
 
 ---
 
@@ -167,6 +169,21 @@
 
 <!-- 📸 截图：选中补全项后生成的参数模板 -->
 > **[截图位置]** 补全后的参数模板（Tab 切换编辑）
+
+---
+
+### 8. XML 内 type 定义跳转
+
+在 `avenue_conf` 下的契约 XML 中，`<field name="x_sendCount" type="x_sendCount_type"/>` 等标签上的 **`type` 属性值**（自定义类型名）支持 **Ctrl+左键**，跳转到**本文件内**的类型定义：
+
+```xml
+<type name="x_sendCount_type" class="int" code="101"/>
+```
+
+- 仅在 **`avenue_conf/**/*.xml`** 中启用，避免误处理其它 XML
+- **只解析当前文件**中的 `<type name="..."/>`，不跨其它 XML 文件
+- 若本文件内存在多个同名 `<type name="..."/>`，将弹出列表供选择
+- 找不到定义时为软引用，不标红报错
 
 ---
 

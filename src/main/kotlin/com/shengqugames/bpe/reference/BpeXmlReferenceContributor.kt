@@ -11,5 +11,9 @@ class BpeXmlReferenceContributor : PsiReferenceContributor() {
             PlatformPatterns.psiElement(XmlAttributeValue::class.java),
             BpeMessageReferenceProvider()
         )
+        registrar.registerReferenceProvider(
+            PlatformPatterns.psiElement(XmlAttributeValue::class.java),
+            BpeXmlTypeReferenceProvider()
+        )
     }
 }

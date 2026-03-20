@@ -15,6 +15,7 @@ ScalaBPE Navigator - An IntelliJ IDEA plugin for ScalaBPE framework development,
     <li><b>Invoke to XML</b> - Ctrl+Click invoke("svcName.msgName") strings to jump to XML contracts</li>
     <li><b>Hover Documentation</b> - Ctrl+Hover or Ctrl+Q to view request/response parameter info</li>
     <li><b>Smart Completion</b> - Auto-complete serviceName.messageName in invoke() calls with editable parameter templates</li>
+    <li><b>XML Type References</b> - Ctrl+Click field <code>type="TypeName"</code> to jump to <code>&lt;type name="TypeName"/&gt;</code> in the same XML file (avenue_conf)</li>
 </ul>
 
 <h3>Prerequisites</h3>
