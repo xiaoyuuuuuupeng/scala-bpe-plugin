@@ -13,6 +13,10 @@ class BpeXmlReferenceContributor : PsiReferenceContributor() {
         )
         registrar.registerReferenceProvider(
             PlatformPatterns.psiElement(XmlAttributeValue::class.java),
+            BpeServiceNameReferenceProvider()
+        )
+        registrar.registerReferenceProvider(
+            PlatformPatterns.psiElement(XmlAttributeValue::class.java),
             BpeXmlTypeReferenceProvider()
         )
     }

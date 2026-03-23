@@ -3,13 +3,14 @@ package com.shengqugames.bpe.marker
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.openapi.editor.markup.GutterIconRenderer
-import com.intellij.openapi.fileEditor.FileEditorManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.util.IconLoader
 import com.intellij.psi.PsiElement
 import com.intellij.psi.xml.XmlTag
 import com.intellij.psi.xml.XmlToken
 import com.intellij.psi.xml.XmlTokenType
 import com.shengqugames.bpe.util.BpeFlowFinder
+import com.shengqugames.bpe.util.BpeImplementationNavigateOffset
 
 /**
  * Gutter icon on <message> tags in XML → navigates to implementation file only.
@@ -50,9 +51,9 @@ class BpeLineMarkerProvider : LineMarkerProvider {
             ICON,
             { "跳转到 $serviceName.$messageName 的实现" },
             { _, _ ->
-                val files = BpeFlowFinder.findFiles(project, params)
-                if (files.isNotEmpty()) {
-                    FileEditorManager.getInstance(project).openFile(files.first(), true)
+                BpeFlowFinder.findFiles(project, params).firstOrNull()?.let { vf ->
+                    val offset = BpeImplementationNavigateOffset.getOffset(vf, serviceName, messageName)
+                    OpenFileDescriptor(project, vf, offset).navigate(true)
                 }
             },
             GutterIconRenderer.Alignment.RIGHT,

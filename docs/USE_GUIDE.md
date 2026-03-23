@@ -43,6 +43,7 @@
 |------|----------|------|
 | .flow 语法高亮 | 自动 | 安装 Scala 插件后 .flow 文件自动获得 Scala 语法高亮 |
 | XML → 实现文件 | 点击 Gutter 图标 | 从 XML `<message>` 跳转到 .scala/.flow 实现文件 |
+| XML → 某 service 全部实现 | Ctrl+Click `<service name="...">` | 列出该服务下全部 .scala / .flow（索引 + 文件名前缀） |
 | XML → 调用点 | Ctrl+Click message name | 从 XML 跳转到 invoke 调用位置 |
 | 实现 → XML | Ctrl+Click 类名 / Gutter 图标 | 从 Scala/Flow 文件反向跳转到 XML 契约 |
 | Invoke → XML | Ctrl+Click 字符串 | 从 `"svcName.msgName"` 跳转到 XML 契约 |
@@ -78,10 +79,11 @@
 
 **使用方法**：点击该图标，直接跳转到对应的 .scala 或 .flow 实现文件。
 
-支持的命名约定：
-- 文件名匹配：`serviceName.messageName.scala` / `.flow`
-- 类名匹配：`Flow_servicename_messagename`
-- Flow 注释匹配：`//$serviceName.messageName`
+**Ctrl+Click `<service name="服务名">`**：在 `avenue_conf` 的契约 XML 中，按住 Ctrl 并点击 **service 的 name 属性值**，可列出该服务下在 `compose_conf` 中的**全部**实现文件（`.scala`、`.flow`），来源包括：预扫描索引（`service.message` 键）以及文件名以 `服务名.` 开头的文件；多文件时弹出选择。
+
+支持的命名约定（与 XML 中 `<service name="…">`、`<message name="…">` 对应；并与 **VSCode 插件 bp-bpeduo** 行为对齐）：
+- **优先**：预扫描 `compose_conf`，用 `serviceName.messageName`（小写）建立索引——来源为 `.flow` 首条匹配行的 `//$a.b` 注释，或 `.scala` 中的 `class Flow_a_b extends`（与 VSCode `AvenueFlowClassScanner` 一致）
+- 若索引未命中，再尝试：路径 `simpleflows/{serviceName}/{messageName}_{id}.flow`、文件名 `{serviceName}.{messageName}.scala|flow`、全文注释匹配、类名匹配等
 
 <!-- 📸 截图：XML 文件中 <message> 标签旁的 Gutter 图标 -->
 > **[截图位置]** XML 文件中 Gutter 图标示意

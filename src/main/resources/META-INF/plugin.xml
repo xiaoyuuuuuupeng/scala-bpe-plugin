@@ -9,7 +9,7 @@ ScalaBPE Navigator - An IntelliJ IDEA plugin for ScalaBPE framework development,
 <h3>Features</h3>
 <ul>
     <li><b>.flow Syntax Highlighting</b> - Automatic Scala syntax highlighting for .flow files (requires Scala plugin)</li>
-    <li><b>XML to Implementation</b> - Click gutter icon on XML message tags to jump to .scala/.flow files</li>
+    <li><b>XML to Implementation</b> - Click gutter icon on XML message tags to jump to .scala/.flow files; Ctrl+Click <code>&lt;service name&gt;</code> to list all implementations for that service</li>
     <li><b>XML to Call Sites</b> - Ctrl+Click message name to navigate to invoke() call locations</li>
     <li><b>Reverse Navigation</b> - Ctrl+Click class names or comments in Scala/Flow files to jump back to XML definitions</li>
     <li><b>Invoke to XML</b> - Ctrl+Click invoke("svcName.msgName") strings to jump to XML contracts</li>
@@ -42,6 +42,15 @@ ScalaBPE Navigator - An IntelliJ IDEA plugin for ScalaBPE framework development,
     ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
+
+    <actions>
+        <action id="com.shengqugames.bpe.GoToXmlDefinition"
+                class="com.shengqugames.bpe.action.BpeGoToXmlDefinitionAction"
+                text="跳转到声明"
+                description="在 avenue_conf 中打开对应的 &lt;message&gt; 定义；可将光标放在 Flow_ 类名、//$ 注释、invoke 字符串上，或在文件任意位置由插件根据 class Flow_… 或 //$ 注释解析跳转">
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
+    </actions>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- .flow files → Scala syntax highlighting (when Scala plugin is installed) -->

@@ -13,9 +13,13 @@ class BpeFlowToXmlReference(
 ) : PsiReferenceBase<PsiElement>(element, rangeInElement) {
 
     override fun resolve(): PsiElement? {
-        val targets = com.shengqugames.bpe.util.BpeXmlFinder
+        return resolveAll().firstOrNull()
+    }
+
+    /** 同一 message 可能对应多个 XML 文件时，返回全部 &lt;message&gt; 节点 */
+    fun resolveAll(): List<PsiElement> {
+        return com.shengqugames.bpe.util.BpeXmlFinder
             .findMessageElements(element.project, svcLower, msgLower)
-        return targets.firstOrNull()
     }
 
     override fun getVariants(): Array<Any> = emptyArray()

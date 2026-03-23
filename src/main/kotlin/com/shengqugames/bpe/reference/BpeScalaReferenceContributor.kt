@@ -111,3 +111,28 @@ private class BpeScalaReferenceProvider : PsiReferenceProvider() {
         return refs.toTypedArray()
     }
 }
+
+/**
+ * 供右键菜单等：在偏移处找出覆盖该位置的 BPE → XML 引用（与 Ctrl+Click 相同规则）。
+ */
+fun findBpeFlowToXmlReferenceAt(psiFile: PsiFile, offset: Int): BpeFlowToXmlReference? {
+    val provider = BpeScalaReferenceProvider()
+    val ctx = ProcessingContext()
+    val el = psiFile.findElementAt(offset)
+        ?: psiFile.findElementAt((offset - 1).coerceAtLeast(0))
+        ?: return null
+    var current: PsiElement? = el
+    while (current != null) {
+        val refs = provider.getReferencesByElement(current, ctx)
+        for (r in refs) {
+            if (r !is BpeFlowToXmlReference) continue
+            val host = r.element
+            val base = host.textRange.startOffset
+            val a = base + r.rangeInElement.startOffset
+            val b = base + r.rangeInElement.endOffset
+            if (offset in a until b) return r
+        }
+        current = current.parent
+    }
+    return null
+}

@@ -8,7 +8,7 @@ import com.shengqugames.bpe.util.BpeInvokeFinder
 import com.shengqugames.bpe.util.NoInvokeCallSiteElement
 
 /**
- * Ctrl+Click on <message name="..."> → navigate to invoke call sites only.
+ * Ctrl+Click on <message name="..."> → navigate to invoke / invokeWithNoReply call sites (same string literal).
  * (Implementation files are handled by the gutter icon in BpeLineMarkerProvider.)
  */
 class BpeMessageReference(

@@ -12,13 +12,15 @@ import com.intellij.openapi.vfs.VirtualFile
  * 1. .flow files (simplified DSL, compiled by framework):
  *    - Naming: {messageName}_{messageId}.flow  (e.g. queryUserInfo_1.flow)
  *    - Also:   {serviceName}.{messageName}.flow (e.g. payCore.changeOrderState.flow)
- *    - Header: //$serviceName.messageName
+ *    - Header: //$serviceName.messageName  （与 XML 中 &lt;service name&gt; / &lt;message name&gt; 对应，见 findByDollarCommentInFlowFiles）
  *
  * 2. .scala files (full Scala class):
  *    - Naming: {serviceName}.{messageName}.scala (e.g. subService.payRouter.doAlipayChannelRouter.scala)
  *    - Class:  Flow_{servicename_lower}_{messagename_lower}
  *
  * At runtime the framework loads: scalabpe.flow.Flow_{serviceName_lower}_{msgName_lower}
+ *
+ * 查找实现时优先 [BpeComposeConfIndex]（与 VSCode bp-bpeduo 预扫描一致），再使用路径/文件名/注释等回退策略。
  */
 object BpeFlowFinder {
 
@@ -37,6 +39,11 @@ object BpeFlowFinder {
         val composeDir = LocalFileSystem.getInstance().findFileByPath("$basePath/compose_conf")
             ?: return emptyList()
 
+        // Strategy 0（对齐 VSCode bp-bpeduo）：compose_conf 预扫描索引，key = service.message
+        BpeComposeConfIndex.findFiles(project, params.serviceName, params.messageName)
+            .takeIf { it.isNotEmpty() }
+            ?.let { return it.distinct() }
+
         val results = mutableListOf<VirtualFile>()
 
         // Strategy 1: {messageName}_{messageId}.flow in simpleflows/{serviceName}/
@@ -48,7 +55,12 @@ object BpeFlowFinder {
             findByFilenameScan(composeDir, params, results)
         }
 
-        // Strategy 4: search .scala files for class Flow_{servicename}_{messagename}
+        // Strategy 4: .flow 文件首行/注释中的 //$serviceName.messageName（与反向导航 FLOW_COMMENT 一致）
+        if (results.isEmpty()) {
+            findByDollarCommentInFlowFiles(composeDir, params, results)
+        }
+
+        // Strategy 5: search .scala files for class Flow_{servicename}_{messagename}
         if (results.isEmpty()) {
             findByClassNameInContent(composeDir, params, results)
         }
@@ -64,10 +76,15 @@ object BpeFlowFinder {
         val composeDir = LocalFileSystem.getInstance().findFileByPath("$basePath/compose_conf")
             ?: return false
 
+        if (BpeComposeConfIndex.hasFile(project, params.serviceName, params.messageName)) return true
+
         if (findBySimpleFlowPath(basePath, params) != null) return true
 
         val results = mutableListOf<VirtualFile>()
         findByFilenameScan(composeDir, params, results)
+        if (results.isNotEmpty()) return true
+
+        findByDollarCommentInFlowFiles(composeDir, params, results)
         if (results.isNotEmpty()) return true
 
         findByClassNameInContent(composeDir, params, results)
@@ -106,7 +123,31 @@ object BpeFlowFinder {
     }
 
     /**
-     * Strategy 4: scan .scala files for class declaration matching
+     * 在 compose_conf 下所有 .flow 内容中查找 `//$serviceName.messageName`（大小写不敏感）。
+     * 与 .flow 中约定的声明注释一致，解决仅依赖文件名找不到实现的情况。
+     */
+    private fun findByDollarCommentInFlowFiles(dir: VirtualFile, params: SearchParams, results: MutableList<VirtualFile>) {
+        // 与 .flow 中 //$serviceName.messageName 一致；允许 // 与 $ 间空白
+        val re = Regex(
+            "//\\s*\\$" + Regex.escape(params.serviceName) + "\\." + Regex.escape(params.messageName),
+            RegexOption.IGNORE_CASE
+        )
+
+        scanDirectory(dir) { file ->
+            if (file.extension?.lowercase() != "flow" || file in results) return@scanDirectory
+            try {
+                val content = String(file.contentsToByteArray(), Charsets.UTF_8)
+                if (re.containsMatchIn(content)) {
+                    results.add(file)
+                }
+            } catch (_: Exception) {
+                // skip
+            }
+        }
+    }
+
+    /**
+     * Strategy 5: scan .scala files for class declaration matching
      * Flow_{servicename_lower}_{messagename_lower}
      */
     private fun findByClassNameInContent(dir: VirtualFile, params: SearchParams, results: MutableList<VirtualFile>) {

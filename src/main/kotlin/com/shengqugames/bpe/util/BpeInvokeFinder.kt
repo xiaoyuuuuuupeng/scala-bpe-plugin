@@ -18,9 +18,10 @@ import com.intellij.psi.xml.XmlAttributeValue
 import javax.swing.Icon
 
 /**
- * Scans compose_conf/ for invoke call sites that reference a given service.message.
+ * Scans compose_conf/ for call sites that reference a given service.message string literal.
+ * 包含 `invoke("a.b", ...)` 与 `invokeWithNoReply("a.b", ...)` 等；同一文件内多处调用会全部列出。
  *
- * Returns navigatable elements that jump to the exact offset of
+ * Returns navigatable elements that jump to the exact offset of the opening `"` of
  * "serviceName.messageName" in .scala / .flow files.
  */
 object BpeInvokeFinder {
@@ -39,16 +40,36 @@ object BpeInvokeFinder {
         scanDir(composeDir) { file ->
             try {
                 val content = String(file.contentsToByteArray(), Charsets.UTF_8)
-                val idx = content.lowercase().indexOf(targetLower)
-                if (idx >= 0) {
-                    val psiFile = psiManager.findFile(file) ?: return@scanDir
-                    val label = "${file.nameWithoutExtension} — invoke(\"$serviceName.$messageName\")"
+                val lc = content.lowercase()
+                var searchFrom = 0
+                while (true) {
+                    val idx = lc.indexOf(targetLower, searchFrom)
+                    if (idx < 0) break
+                    val psiFile = psiManager.findFile(file) ?: break
+                    val callKind = inferCallKindBeforeQuote(content, idx)
+                    val label =
+                        "${file.nameWithoutExtension} — $callKind(\"$serviceName.$messageName\")"
+                    // 跳转到字符串字面量内 service 的起始引号后的字符，与原先 idx+1 一致（打开引号后）
                     results.add(InvokeCallSiteElement(psiFile, idx + 1, label))
+                    searchFrom = idx + 1
                 }
             } catch (_: Exception) { }
         }
 
         return results
+    }
+
+    /**
+     * 根据引号前的代码判断是 invokeWithNoReply、invoke 或其它。
+     */
+    private fun inferCallKindBeforeQuote(content: String, quoteIdx: Int): String {
+        val start = maxOf(0, quoteIdx - 160)
+        val before = content.substring(start, quoteIdx).lowercase()
+        return when {
+            before.contains("invokewithnoreply") -> "invokeWithNoReply"
+            before.contains("invoke") -> "invoke"
+            else -> "call"
+        }
     }
 
     fun hasCallSite(
@@ -148,7 +169,7 @@ class NoInvokeCallSiteElement(
 
     override fun navigate(requestFocus: Boolean) {
         val project = anchor.project
-        val text = "本项目中无此方法调用（$serviceName.$messageName）"
+        val text = "本项目中无 invoke / invokeWithNoReply 调用（$serviceName.$messageName）"
         val doc = PsiDocumentManager.getInstance(project).getDocument(anchor.containingFile)
         val editorFromDoc = doc?.let { d ->
             EditorFactory.getInstance().getEditors(d, project).firstOrNull()

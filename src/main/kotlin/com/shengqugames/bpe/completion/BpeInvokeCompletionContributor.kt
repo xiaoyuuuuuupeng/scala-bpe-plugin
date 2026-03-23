@@ -50,7 +50,8 @@ private class BpeFuzzyMatcher(prefix: String) : PrefixMatcher(prefix) {
 private class BpeInvokeCompletionProvider : CompletionProvider<CompletionParameters>() {
 
     companion object {
-        val INVOKE_SECOND_PARAM = Regex("""invoke\s*\([^,]+,\s*"([^"]*)$""")
+        /** 第二参数为 service.message 字符串：invoke(...) 与 invokeWithNoReply(...) */
+        val INVOKE_SECOND_PARAM = Regex("""(?:invokeWithNoReply|invoke)\s*\([^,]+,\s*"([^"]*)$""")
     }
 
     override fun addCompletions(
