@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.shengqugames"
-version = "1.0.1"
+version = "1.0.2"
 
 repositories {
     // 阿里云公共仓库（镜像 Maven Central + JCenter）
@@ -26,7 +26,7 @@ intellijPlatform {
     pluginConfiguration {
         id = "com.shengqugames.scala-bpe-plugin"
         name = "ScalaBPE Navigator"
-        version = "1.0.1"
+        version = "1.0.2"
         ideaVersion {
             sinceBuild = "252"
         }

@@ -5,71 +5,126 @@ import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.openapi.editor.markup.GutterIconRenderer
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.TextRange
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.Navigatable
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
 import com.shengqugames.bpe.util.BpeXmlFinder
 
 /**
- * Shows a gutter icon (← arrow) on class declarations / flow comments that link back to XML.
+ * .scala / .flow → XML 的 gutter（←）。
  *
- * 每个 .scala / .flow 文件只生成一个 gutter：在 collectSlowLineMarkers 里按 VirtualFile 去重并扫描全文前段，
- * 避免「类名标识符」与「整段扫描」两条路径重复导致同一行两个图标。
+ * **不要依赖 [collectSlowLineMarkers] 作为唯一来源**：`LineMarkersPass` 在 `Mode.FAST` 下会在调用
+ * `collectSlowLineMarkers` 之前直接返回，导致慢速收集从不执行，gutter 会全部消失。
+ *
+ * 在 [getLineMarkerInfo] 中处理：
+ * - 可见区域内的 `Flow_` 类名 token、`//$` 注释（与 Ctrl+Click 一致）
+ * - 无 Scala PSI 的纯文本 `.flow`：单元素覆盖整文件时再扫 class / `//$`
  */
 class BpeReverseLineMarkerProvider : LineMarkerProvider {
 
     companion object {
         val ICON = IconLoader.getIcon("/icons/bpe_xml.svg", BpeReverseLineMarkerProvider::class.java)
         val FULL_CLASS_PATTERN = Regex("""class\s+Flow_([a-zA-Z0-9]+)_([a-zA-Z0-9]+)\s+extends""")
-        val FLOW_COMMENT_PATTERN = Regex("""//\${'$'}(\w+)\.(\w+)""")
+        val FLOW_COMMENT_PATTERN = Regex("""//\s*\$\s*(\w+)\.(\w+)""")
+        private val CLASS_NAME_TOKEN = Regex("""Flow_([a-zA-Z0-9]+)_([a-zA-Z0-9]+)""")
+        private const val SCAN_PREFIX_CHARS = 512 * 1024
     }
 
-    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? = null
+    override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
+        val psiFile = element.containingFile ?: return null
+        val vf = psiFile.virtualFile ?: return null
+        val ext = vf.extension?.lowercase() ?: return null
+        if (ext != "scala" && ext != "flow") return null
 
+        val project = element.project
+        val text = element.text
+
+        // 1) 类名标识符 Flow_xxx_yyy（Scala / 结构化 .flow）
+        if (!text.contains('\n') && !text.contains(' ') && text.length < 200) {
+            CLASS_NAME_TOKEN.matchEntire(text)?.let { m ->
+                val svc = m.groupValues[1].lowercase()
+                val msg = m.groupValues[2].lowercase()
+                if (BpeXmlFinder.hasMessageElement(project, svc, msg)) {
+                    return createMarker(element, element.textRange, svc, msg)
+                }
+            }
+        }
+
+        // 2) 单行 //$service.message（注释被拆成独立 Psi 时）
+        if (!text.contains('\n') && text.length < 500) {
+            val trimmed = text.trimStart()
+            val leadingWs = text.length - trimmed.length
+            FLOW_COMMENT_PATTERN.matchEntire(trimmed)?.let { m ->
+                val svc = m.groupValues[1].lowercase()
+                val msg = m.groupValues[2].lowercase()
+                if (BpeXmlFinder.hasMessageElement(project, svc, msg)) {
+                    val start = element.textRange.startOffset + leadingWs + m.range.first
+                    val end = element.textRange.startOffset + leadingWs + m.range.last + 1
+                    return createMarker(element, TextRange(start, end), svc, msg)
+                }
+            }
+        }
+
+        // 3) 纯文本 .flow：整文件一个元素时扫 class / //$（无 Scala 插件时常见）
+        if (ext == "flow" && isPlainTextFlow(psiFile) && spansWholeFile(element, psiFile) && text.contains('\n')) {
+            return markerFromScannedContent(psiFile, element, text.take(SCAN_PREFIX_CHARS))
+        }
+
+        return null
+    }
+
+    /** FAST 模式下不会执行；留空避免与 [getLineMarkerInfo] 在 ALL 模式下重复注册 */
     override fun collectSlowLineMarkers(
         elements: List<PsiElement>,
         result: MutableCollection<in LineMarkerInfo<*>>
     ) {
-        val processedFiles = mutableSetOf<VirtualFile>()
-        for (element in elements) {
-            val vf = element.containingFile?.virtualFile ?: continue
-            val ext = vf.extension?.lowercase()
-            if (ext != "scala" && ext != "flow") continue
-            if (!processedFiles.add(vf)) continue
+    }
 
-            val psiFile = element.containingFile ?: continue
-            val text = psiFile.text
-            if (text.isEmpty()) continue
+    private fun isPlainTextFlow(psiFile: PsiFile): Boolean {
+        val id = psiFile.language.id
+        return id.equals("TEXT", ignoreCase = true) ||
+            id.equals("Plain text", ignoreCase = true) ||
+            id.equals("text", ignoreCase = true)
+    }
 
-            val scanText = text.take(2000)
+    private fun spansWholeFile(element: PsiElement, psiFile: PsiFile): Boolean {
+        val fr = psiFile.textRange
+        val er = element.textRange
+        return er.startOffset == fr.startOffset && er.endOffset == fr.endOffset
+    }
 
-            val classMatch = FULL_CLASS_PATTERN.find(scanText)
-            if (classMatch != null) {
-                val svcLower = classMatch.groupValues[1].lowercase()
-                val msgLower = classMatch.groupValues[2].lowercase()
-                if (BpeXmlFinder.hasMessageElement(element.project, svcLower, msgLower)) {
-                    val range = TextRange(
-                        classMatch.range.first,
-                        classMatch.range.last + 1
-                    )
-                    result.add(createMarker(psiFile, range, svcLower, msgLower))
-                    continue
-                }
-            }
+    private fun markerFromScannedContent(
+        psiFile: PsiFile,
+        anchor: PsiElement,
+        scanText: String
+    ): LineMarkerInfo<PsiElement>? {
+        val base = psiFile.textRange.startOffset
 
-            val flowMatch = FLOW_COMMENT_PATTERN.find(scanText)
-            if (flowMatch != null) {
-                val svcLower = flowMatch.groupValues[1].lowercase()
-                val msgLower = flowMatch.groupValues[2].lowercase()
-                if (BpeXmlFinder.hasMessageElement(element.project, svcLower, msgLower)) {
-                    val range = TextRange(
-                        flowMatch.range.first,
-                        flowMatch.range.last + 1
-                    )
-                    result.add(createMarker(psiFile, range, svcLower, msgLower))
-                }
+        FULL_CLASS_PATTERN.find(scanText)?.let { classMatch ->
+            val svcLower = classMatch.groupValues[1].lowercase()
+            val msgLower = classMatch.groupValues[2].lowercase()
+            if (BpeXmlFinder.hasMessageElement(psiFile.project, svcLower, msgLower)) {
+                val range = TextRange(
+                    base + classMatch.range.first,
+                    base + classMatch.range.last + 1
+                )
+                return createMarker(anchor, range, svcLower, msgLower)
             }
         }
+
+        FLOW_COMMENT_PATTERN.find(scanText)?.let { flowMatch ->
+            val svcLower = flowMatch.groupValues[1].lowercase()
+            val msgLower = flowMatch.groupValues[2].lowercase()
+            if (BpeXmlFinder.hasMessageElement(psiFile.project, svcLower, msgLower)) {
+                val range = TextRange(
+                    base + flowMatch.range.first,
+                    base + flowMatch.range.last + 1
+                )
+                return createMarker(anchor, range, svcLower, msgLower)
+            }
+        }
+
+        return null
     }
 
     private fun createMarker(
